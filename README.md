@@ -18,7 +18,7 @@ Developed as a selection task for the Junior Research Fellowship (JRF) position 
 
 ## System Design
 
-<img src="media/Chopstick crane.png" alt="System design diagram" width="800">
+<img src="media/Chopstick Crane.png" alt="System design diagram" width="800">
 
 🔗 [Explore the full interactive system design on Whimsical](https://whimsical.com/arshitha-s-workspace/chopstick-crane-BmWHVDkr3XFUijBujALigq)
 
