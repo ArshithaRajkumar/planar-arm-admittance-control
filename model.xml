@@ -1,0 +1,220 @@
+<mujoco model="chopstick_crane">
+
+  <!--
+    Chopstick Crane — MuJoCo Model
+    ================================
+    Planar 3-link arm in the world x-z plane.
+    All revolute joints rotate about the y-axis.
+    Gravity acts in -z direction.
+
+    Arm:   Base at origin; links L1=0.30m, L2=0.25m, L3=0.15m
+    Board: Passive spring-damper hinge at (0.50, 0, -0.10)
+           k=3.0 N·m/rad, b=0.3 N·m·s/rad
+           Board surface extends ~0.28 m from hinge.
+  -->
+
+  <option gravity="0 0 -9.81" timestep="0.002" integrator="RK4"/>
+  <compiler angle="degree" autolimits="true"/>
+
+  <visual>
+    <global offwidth="1280" offheight="720"/>
+  </visual>
+
+  <!-- ────────── Defaults ────────── -->
+  <default>
+    <joint damping="0.05" armature="0.01" limited="true"/>
+    <geom condim="3" friction="0.8 0.02 0.001"
+          solimp="0.95 0.99 0.001 0.5 2" solref="0.01 1"/>
+  </default>
+
+  <!-- ────────── Assets ────────── -->
+  <asset>
+    <texture type="skybox" builtin="gradient"
+             rgb1="0.18 0.18 0.25" rgb2="0.05 0.05 0.08"
+             width="512" height="512"/>
+    <texture name="grid" type="2d" builtin="checker"
+             rgb1="0.18 0.18 0.20" rgb2="0.25 0.25 0.28"
+             width="512" height="512" mark="cross" markrgb="0.3 0.3 0.4"/>
+    <material name="grid_mat" texture="grid" texrepeat="4 4"
+              reflectance="0.1" rgba="1 1 1 0.4"/>
+    <material name="link_mat"  rgba="0.45 0.55 0.85 1"/>
+    <material name="joint_mat" rgba="0.85 0.85 0.35 1"/>
+    <material name="pen_mat"   rgba="0.95 0.15 0.15 1"/>
+    <material name="board_mat" rgba="0.80 0.70 0.50 1"/>
+    <material name="hinge_mat" rgba="0.35 0.35 0.35 1"/>
+    <material name="target_mat" rgba="0.10 0.85 0.30 1"/>
+  </asset>
+
+  <!-- ────────── World Body ────────── -->
+  <worldbody>
+
+    <!-- Background grid for visual reference (no collision) -->
+    <geom name="bg_grid" type="plane" size="1.5 1.5 0.01"
+          pos="0 0.12 0" euler="90 0 0"
+          material="grid_mat" contype="0" conaffinity="0"/>
+
+    <!-- Lights -->
+    <light directional="true" diffuse="0.8 0.8 0.8" specular="0.2 0.2 0.2" pos="0 0 3" dir="0 0 -1"/>
+    
+    <!-- Cameras -->
+    <camera name="cam_side" pos="0.3 -0.8 0.15" xyaxes="1 0 0 0 0 1"/>
+    <camera name="cam_top" pos="0.3 0.0 0.8" xyaxes="1 0 0 0 1 0"/>
+    <camera name="iso_cam" pos="0.8 -1.2 0.3" mode="targetbody" target="board"/>
+    <camera name="cam_front" pos="-0.2 -0.4 0.15" mode="targetbody" target="board"/>
+
+    <!-- Target Marker Mocap -->
+    <body name="target_mocap" mocap="true" pos="0 0 0">
+        <geom name="target_marker" type="sphere" size="0.008" rgba="0 1 0 1" contype="0" conaffinity="0"/>
+    </body>
+
+    <!-- ═══════════ ARM ═══════════ -->
+    <body name="arm_base" pos="0 0 0">
+      <!-- Base cylinder -->
+      <geom name="g_base" type="cylinder" size="0.055 0.030"
+            rgba="0.25 0.25 0.30 1" contype="0" conaffinity="0"/>
+
+      <!-- JOINT 1 — Shoulder (rotates in x-z plane, axis = y) -->
+      <joint name="j1" type="hinge" axis="0 1 0" pos="0 0 0"
+             range="-180 180"/>
+
+      <!-- Link-1 body -->
+      <body name="link1" pos="0 0 0">
+        <geom name="g_link1" type="capsule"
+              fromto="0 0 0  0.30 0 0" size="0.018"
+              material="link_mat" contype="0" conaffinity="0"/>
+        <!-- Joint marker -->
+        <geom name="gj_j1" type="sphere" size="0.024" pos="0 0 0"
+              material="joint_mat" contype="0" conaffinity="0"/>
+
+        <!-- JOINT 2 — Elbow -->
+        <body name="j2_body" pos="0.30 0 0">
+          <joint name="j2" type="hinge" axis="0 1 0" pos="0 0 0"
+                 range="-175 175"/>
+
+          <!-- Link-2 body -->
+          <body name="link2" pos="0 0 0">
+            <geom name="g_link2" type="capsule"
+                  fromto="0 0 0  0.25 0 0" size="0.015"
+                  material="link_mat" contype="0" conaffinity="0"/>
+            <geom name="gj_j2" type="sphere" size="0.020" pos="0 0 0"
+                  material="joint_mat" contype="0" conaffinity="0"/>
+
+            <!-- JOINT 3 — Wrist -->
+            <body name="j3_body" pos="0.25 0 0">
+              <joint name="j3" type="hinge" axis="0 1 0" pos="0 0 0"
+                     range="-175 175"/>
+
+              <!-- Link-3 body (pen holder) -->
+              <body name="link3" pos="0 0 0">
+                <geom name="g_link3" type="capsule"
+                      fromto="0 0 0  0.15 0 0" size="0.012"
+                      material="link_mat" contype="0" conaffinity="0"/>
+                <geom name="gj_j3" type="sphere" size="0.017" pos="0 0 0"
+                      material="joint_mat" contype="0" conaffinity="0"/>
+
+                <!-- Pen tip — the contact sphere -->
+                <body name="pen_tip" pos="0.15 0 0">
+                  <geom name="pen_sphere" type="sphere" size="0.009"
+                        material="pen_mat" contype="1" conaffinity="2"
+                        friction="0 0 0"
+                        mass="0.005"/>
+                  <!-- Site used for sensor measurements and FK verification -->
+                  <site name="tip_site" pos="0 0 0" size="0.006" rgba="1 0 0 1"/>
+                </body>
+
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+
+    <!--
+      Vertical Wall Mount (Hinge at bottom)
+      Hinge located at (0.45, 0, 0.0) matching diagram O-level.
+      Rotated -90 degrees around Y so the board points straight UP.
+    -->
+    <body name="board_mount" pos="0.45 0 0.0" euler="0 -90 0">
+      <!-- Fixed pivot visible marker -->
+      <geom name="g_pivot" type="cylinder" size="0.003 0.030"
+            euler="90 0 0" material="hinge_mat"
+            contype="0" conaffinity="0"/>
+
+      <!-- Board body — passive hinge -->
+      <body name="board" pos="0 0 0">
+        <joint name="board_hinge" type="hinge" axis="0 1 0" pos="0 0 0"
+               range="-30 30"
+               stiffness="3.0" damping="0.3" ref="0"/>
+
+        <!--
+          Main writing surface.
+          Extends from -0.04m (left of hinge) to +0.28m (right of hinge).
+          Contact geom: pen_sphere contacts board_surface.
+        -->
+        <geom name="board_surface" type="box"
+              size="0.160 0.055 0.020"
+              pos="0.120 0 0"
+              material="board_mat"
+              contype="2" conaffinity="1"
+              friction="0 0 0"
+              mass="0.25"/>
+
+        <!-- Small stub behind hinge for realism -->
+        <geom name="board_back" type="box"
+              size="0.040 0.055 0.007"
+              pos="-0.040 0 0"
+              material="board_mat"
+              contype="2" conaffinity="1"
+              mass="0.05"/>
+
+        <!-- Counterweight to make board a stable pendulum -->
+        <geom name="counterweight" type="box"
+              size="0.02 0.055 0.02"
+              pos="-0.100 0 0"
+              rgba="0.2 0.2 0.2 1"
+              contype="0" conaffinity="0"
+              mass="1.0"/>
+
+        <!-- Sites for measurement -->
+        <site name="board_center"  pos="0.120 0 0.007" size="0.005"/>
+        <site name="hinge_site"    pos="0     0 0"     size="0.005"/>
+      </body>
+    </body>
+
+  </worldbody>
+
+  <!-- ════════════ ACTUATORS ════════════ -->
+  <!--
+    Position actuators with built-in PD control.
+    kp = proportional gain; kv = velocity (derivative) gain.
+    These implement: τ = kp·(q_ref − q) − kv·q̇
+    which is classic PD feedback control at the joint level.
+  -->
+  <actuator>
+    <position name="act_j1" joint="j1" kp="250" kv="18"
+              forcelimited="true" forcerange="-50 50"/>
+    <position name="act_j2" joint="j2" kp="220" kv="15"
+              forcelimited="true" forcerange="-40 40"/>
+    <position name="act_j3" joint="j3" kp="150" kv="12"
+              forcelimited="true" forcerange="-30 30"/>
+  </actuator>
+
+  <!-- ════════════ SENSORS ════════════ -->
+  <sensor>
+    <!-- Joint positions -->
+    <jointpos  name="s_j1"      joint="j1"/>
+    <jointpos  name="s_j2"      joint="j2"/>
+    <jointpos  name="s_j3"      joint="j3"/>
+    <!-- Board state -->
+    <jointpos  name="s_phi"     joint="board_hinge"/>
+    <jointvel  name="s_phi_dot" joint="board_hinge"/>
+    <!-- Pen tip world position [x, y, z] -->
+    <framepos  name="s_tip_pos" objtype="site" objname="tip_site"/>
+    <!-- Touch / contact indicator at pen tip -->
+    <touch     name="s_touch"   site="tip_site"/>
+    <!-- Board center position [x, y, z] -->
+    <framepos  name="s_board_pos" objtype="site" objname="board_center"/>
+  </sensor>
+
+</mujoco>
+
