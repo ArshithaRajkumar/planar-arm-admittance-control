@@ -22,6 +22,23 @@ Developed as a selection task for the Junior Research Fellowship (JRF) position 
 
 🔗 [Explore the full interactive system design on Whimsical](https://whimsical.com/arshitha-s-workspace/chopstick-crane-BmWHVDkr3XFUijBujALigq)
 
+## Method
+
+### Kinematic Model
+The arm is modeled as a 3-link planar manipulator with revolute joints, simulated in MuJoCo's physics engine.
+
+### Inverse Kinematics — Damped Least Squares (DLS)
+Standard Jacobian pseudoinverse IK becomes numerically unstable near kinematic singularities, producing large, unrealistic joint velocities. DLS resolves this by adding a damping term to the pseudoinverse solution, trading a small amount of tracking accuracy near singularities for numerical stability and smoother joint motion:
+
+```
+Δθ = Jᵀ(JJᵀ + λ²I)⁻¹ Δx
+```
+
+where λ is the damping factor, tuned to balance tracking precision against singularity robustness.
+
+### Force Control — Admittance
+Rather than directly controlling end-effector stiffness (impedance control), an admittance controller maps sensed contact force error (relative to the 3.75N target) to a corrective velocity/position response, allowing the pen tip to comply with the board's motion while maintaining steady contact force.
+
 ## Project Structure
 
 The project is split into four primary files to cleanly separate physics modelling, mathematical kinematics, control logic, and visualization.
@@ -69,23 +86,6 @@ pip install -r requirements.txt
    python plot_results.py
    ```
    The plots will be saved as PNG images in the `results/` folder.
-
-## Method
-
-### Kinematic Model
-The arm is modeled as a 3-link planar manipulator with revolute joints, simulated in MuJoCo's physics engine.
-
-### Inverse Kinematics — Damped Least Squares (DLS)
-Standard Jacobian pseudoinverse IK becomes numerically unstable near kinematic singularities, producing large, unrealistic joint velocities. DLS resolves this by adding a damping term to the pseudoinverse solution, trading a small amount of tracking accuracy near singularities for numerical stability and smoother joint motion:
-
-```
-Δθ = Jᵀ(JJᵀ + λ²I)⁻¹ Δx
-```
-
-where λ is the damping factor, tuned to balance tracking precision against singularity robustness.
-
-### Force Control — Admittance
-Rather than directly controlling end-effector stiffness (impedance control), an admittance controller maps sensed contact force error (relative to the 3.75N target) to a corrective velocity/position response, allowing the pen tip to comply with the board's motion while maintaining steady contact force.
 
 ## Limitations & Future Work
 
