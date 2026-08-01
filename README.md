@@ -6,13 +6,7 @@ The controller uses Damped Least-Squares (DLS) Inverse Kinematics (IK) combined 
 
 Developed as a selection task for the Junior Research Fellowship (JRF) position at the INTERFACE Lab, IIT Madras.
 
-## Demo
-
 ![Chopstick crane demo](media/demo.gif)
-
-*Short clip of the arm tracking the board surface while regulating contact force.*
-
-📹 [Watch full demo (40.1s)](media/demo.mp4)
 
 ## Results
 
@@ -20,7 +14,13 @@ Developed as a selection task for the Junior Research Fellowship (JRF) position 
 - Stable force regulation around the 3.75N target despite board tilt and bounce
 - Stable behavior through simulated singular configurations
 
-![Force regulation and tracking performance](media/chopstick_crane.png)
+📹 [Watch full demo (40.1s)](media/demo.mp4)
+
+## System Design
+
+<img src="media/Chopstick crane.png" alt="System design diagram" width="800">
+
+🔗 [Explore the full interactive system design on Whimsical](https://whimsical.com/arshitha-s-workspace/chopstick-crane-BmWHVDkr3XFUijBujALigq)
 
 ## Project Structure
 
@@ -35,7 +35,7 @@ The project is split into four primary files to cleanly separate physics modelli
 ├── plot_results.py         # Reads logs, generates performance plots
 ├── requirements.txt
 ├── results/               # Output logs, videos, and plots from simulate.py / plot_results.py
-├── media/                 # demo.gif, demo.mp4, chopstick_crane.png
+├── media/                 # demo.gif, demo.mp4, Chopstick crane.png
 ├── report.pdf             # Two-page task report
 └── README.md
 ```
